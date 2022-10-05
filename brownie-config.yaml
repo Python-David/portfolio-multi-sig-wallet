@@ -1,0 +1,13 @@
+networks:
+  default: development
+  development:
+    verify: False
+  rinkeby:
+    verify: True
+  goerli:
+    verify: True
+  mainnet-fork:
+    verify: False
+wallets:
+  from_key: ${PRIVATE_KEY}
+dotenv: .env
