@@ -2,18 +2,7 @@
 pragma solidity ^0.8.13;
 
 contract MultiSigWallet {
-    event Deposit(address indexed sender, uint amount, uint balance);
-    event SubmitTransaction(
-        address indexed owner,
-        uint indexed txIndex,
-        address indexed to,
-        uint value,
-        bytes data
-    );
-    event ConfirmTransaction(address indexed owner, uint indexed txIndex);
-    event RevokeConfirmation(address indexed owner, uint indexed txIndex);
-    event ExecuteTransaction(address indexed owner, uint indexed txIndex);
-
+    address mainOwner;
     address[] public owners;
     mapping(address => bool) public isOwner;
     uint public numConfirmationsRequired;
@@ -26,13 +15,12 @@ contract MultiSigWallet {
         uint numConfirmations;
     }
 
-    // mapping from tx index => owner => bool
     mapping(uint => mapping(address => bool)) public isConfirmed;
 
     Transaction[] public transactions;
 
     modifier onlyOwner() {
-        require(isOwner[msg.sender], "not owner");
+        require(msg.sender == mainOwner, "not owner");
         _;
     }
 
@@ -46,12 +34,8 @@ contract MultiSigWallet {
         _;
     }
 
-    modifier notConfirmed(uint _txIndex) {
-        require(!isConfirmed[_txIndex][msg.sender], "tx already confirmed");
-        _;
-    }
-
     constructor(address[] memory _owners, uint _numConfirmationsRequired) {
+        mainOwner = msg.sender;
         require(_owners.length > 0, "owners required");
         require(
             _numConfirmationsRequired > 0 &&
@@ -72,13 +56,9 @@ contract MultiSigWallet {
         numConfirmationsRequired = _numConfirmationsRequired;
     }
 
-    receive() external payable {
-        emit Deposit(msg.sender, msg.value, address(this).balance);
-    }
+    receive() external payable {}
 
-    function deposit() payable external {
-        emit Deposit(msg.sender, msg.value, address(this).balance);
-    }
+    function deposit() payable external {}
 
     function submitTransaction(
         address _to,
@@ -98,8 +78,6 @@ contract MultiSigWallet {
         );
 
         confirmTransaction(txIndex);
-
-        emit SubmitTransaction(msg.sender, txIndex, _to, _value, _data);
     }
 
     function confirmTransaction(uint _txIndex)
@@ -107,13 +85,10 @@ contract MultiSigWallet {
         onlyOwner
         txExists(_txIndex)
         notExecuted(_txIndex)
-        notConfirmed(_txIndex)
     {
         Transaction storage transaction = transactions[_txIndex];
         transaction.numConfirmations += 1;
         isConfirmed[_txIndex][msg.sender] = true;
-
-        emit ConfirmTransaction(msg.sender, _txIndex);
     }
 
     function executeTransaction(uint _txIndex)
@@ -135,8 +110,6 @@ contract MultiSigWallet {
             transaction.data
         );
         require(success, "tx failed");
-
-        emit ExecuteTransaction(msg.sender, _txIndex);
     }
 
     function revokeConfirmation(uint _txIndex)
@@ -147,12 +120,8 @@ contract MultiSigWallet {
     {
         Transaction storage transaction = transactions[_txIndex];
 
-        require(isConfirmed[_txIndex][msg.sender], "tx not confirmed");
-
         transaction.numConfirmations -= 1;
         isConfirmed[_txIndex][msg.sender] = false;
-
-        emit RevokeConfirmation(msg.sender, _txIndex);
     }
 
     function getOwners() public view returns (address[] memory) {
@@ -187,3 +156,4 @@ contract MultiSigWallet {
 }
 
 // [0x5B38Da6a701c568545dCfcB03FcB875f56beddC4, 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2, 0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db], 2
+// [0x5B38Da6a701c568545dCfcB03FcB875f56beddC4, 0xdD870fA1b7C4700F2BD7f44238821C26f7392148, 0x583031D1113aD414F02576BD6afaBfb302140225], 2

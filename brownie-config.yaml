@@ -2,8 +2,6 @@ networks:
   default: development
   development:
     verify: False
-  rinkeby:
-    verify: True
   goerli:
     verify: True
   mainnet-fork:
