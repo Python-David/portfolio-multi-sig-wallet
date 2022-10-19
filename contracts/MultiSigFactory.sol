@@ -42,19 +42,16 @@ contract MultiSigFactory {
 
     function getOwners(address _user, uint _contract) public view returns (address[] memory) {
         MultiSigWallet wallet_contract = userToWallets[_user][_contract];
-        require(isOwner[msg.sender][wallet_contract], "not owner");
         return wallet_contract.getOwners();
     }
 
     function getTransaction(address _user, uint _contract, uint _txIndex) public view returns (address to, uint value, bytes memory data, bool executed, uint numConfirmations) {
         MultiSigWallet wallet_contract = userToWallets[_user][_contract];
-        require(isOwner[msg.sender][wallet_contract], "not owner");
         return wallet_contract.getTransaction(_txIndex);
     }
 
     function getTransactionCount(address _user, uint _contract) public view returns (uint) {
         MultiSigWallet wallet_contract = userToWallets[_user][_contract];
-        require(isOwner[msg.sender][wallet_contract], "not owner");
         return wallet_contract.getTransactionCount();
     }
 
@@ -109,12 +106,13 @@ contract MultiSigFactory {
 
     function returnWallet(address _user, uint _contract) view public returns(address) {
         MultiSigWallet wallet_contract = userToWallets[_user][_contract];
-        require(isOwner[msg.sender][wallet_contract], "not owner");
-
         return address(wallet_contract);
+    }
+
+    function returnWalletCount(address _user) view public returns(uint256) {
+        uint256 walletCount = userToWallets[_user].length;
+        return walletCount;
     }
 
 }
 
-// [0x5B38Da6a701c568545dCfcB03FcB875f56beddC4, 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2, 0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db], 2
-// [0x5B38Da6a701c568545dCfcB03FcB875f56beddC4, 0xdD870fA1b7C4700F2BD7f44238821C26f7392148, 0x583031D1113aD414F02576BD6afaBfb302140225], 2

@@ -37,6 +37,9 @@ def test_create_wallet():
             owners[3],
         ]
 
+        with pytest.raises(exceptions.VirtualMachineError):
+            factory.getOwners(account, 0, {"from": owners[4]})
+
         assert factory.userToWallets(account, 0, {"from": account}) == wallet_1
         assert factory.userToWallets(account, 1, {"from": account}) == wallet_2
         assert factory.isOwner(account, wallet_1, {"from": account}) == True
